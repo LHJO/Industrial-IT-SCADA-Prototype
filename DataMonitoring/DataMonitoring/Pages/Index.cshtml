@@ -41,15 +41,15 @@
             </div>
         </div>
 
-        <!-- Alarm System Placeholder -->
+        <!-- Alarm System -->
         <div class="col-md-6 mb-4">
             <div class="scada-panel h-100 scada-panel-alarm">
                 <div class="scada-panel-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Active Alarms</h5>
-                    <span class="scada-badge">2</span>
+                    <span class="scada-badge">0</span>
                 </div>
                 <div class="scada-panel-body p-0">
-                    <!-- Placeholder table -->
+                    <!-- SCADA alarm table -->
                     <table class="scada-table mb-0">
                         <thead>
                             <tr>
@@ -59,25 +59,8 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Mock Alarm 1 -->
-                            <tr class="scada-row-alarm">
-                                <td>10:42:05</td>
-                                <td>Pressure High</td>
-                                <td>High</td>
-                                <td>
-                                    <button class="scada-btn scada-btn-alarm">Ack</button>
-                                </td>
-                            </tr>
-                            <!-- Mock Alarm 2 -->
-                            <tr class="scada-row-warning">
-                                <td>10:45:12</td>
-                                <td>Temp Warning</td>
-                                <td>Medium</td>
-                                <td>
-                                    <button class="scada-btn scada-btn-warning">Ack</button>
-                                </td>
-                            </tr>
+                        <tbody id="alarmTableBody">
+                            <!-- Alarms will be injected here dynamically -->
                         </tbody>
                     </table>
                 </div>
@@ -106,7 +89,7 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <script>
         const ctx = document.getElementById('tempChart').getContext('2d');
 
@@ -147,9 +130,12 @@
             fetch('?handler=LatestData')
                 .then(response => response.json())
                 .then(data => {
+
+					// Update the displayed values
                     document.getElementById('sensor1Value').innerHTML = data.setpoint  + ' &deg;C';
                     document.getElementById('sensor1Feedback').innerHTML = data.feedback + ' &deg;C';
 
+					// Add new data points to the chart
                     const time = new Date().toLocaleTimeString();
 
                     tempChart.data.labels.push(time);
@@ -164,10 +150,59 @@
                     }
 
                     tempChart.update(); 
+
+                    // Alarm logic
+                    const alarmTableBody = document.getElementById('alarmTableBody');
+                    const feedbackValue = parseFloat(data.feedback);
+                    const alarmLimitHigh = 45.0; 
+					const alarmLimitLow = 15.0;
+					const warningLimitHigh = 35.0;
+					const warningLimitLow = 20.0;
+
+                    if (feedbackValue >= alarmLimitHigh)
+                    {
+                        alarmTableBody.innerHTML = `
+                            <tr class="scada-row-alarm">
+                                <td>${time}</td>
+                                <td>Temp High (${feedbackValue} &deg;C)</td>
+                                <td>High</td>
+                                <td>
+                                    <button class="scada-btn scada-btn-alarm" onclick="acknowledgeLocalAlarm(this)">Ack</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    else if (feedbackValue <= alarmLimitLow)
+                    {
+                        alarmTableBody.innerHTML = `
+                            <tr class="scada-row-alarm">
+                                <td>${time}</td>
+                                <td>Temperature Low (${feedbackValue} &deg;C)</td>
+                                <td>High</td>
+                                <td>
+                                    <button class="scada-btn scada-btn-alarm" onclick="acknowledgeLocalAlarm(this)">Ack</button>
+                                </td>
+                            </tr>
+                        `;
+					}
+                    else
+                    {
+						alarmTableBody.innerHTML = '';
+						document.querySelector('.scada-panel-footer').textContent = '0';
+                    }
+
+
                 })
                 .catch(error => console.error('Error fetching OPC data:', error));
         }
 
         setInterval(fetchLatestData, 1000);
+
+                const alarmState = {
+            tempHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'High' },
+            tempLow: { active: false, acknowledged: false, time: null, message: '', severity: 'High' },
+            tempWarningHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium' },
+            tempWarningLow: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium' }
+        };
     </script>
 }

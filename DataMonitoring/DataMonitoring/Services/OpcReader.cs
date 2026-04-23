@@ -36,5 +36,7 @@ namespace DataMonitoring.Services
                 LatestSetpoint = valSetpoint?.Value != null ? valSetpoint.Value.ToString() : "No data"; 
             }
         }
+
+        // public void AcknowledgeAlarm()
     }
 }
