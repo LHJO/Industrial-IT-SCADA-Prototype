@@ -9,7 +9,8 @@ namespace DataMonitoring.Pages
 
         private readonly OpcReader _opcReader;
 
-        public string CurrentTagValue { get; set; }
+        public string CurrentFeedback { get; set; }
+        public string CurrentSetpoint { get; set; }
 
         public IndexModel(OpcReader opcReader)
         {
@@ -17,14 +18,16 @@ namespace DataMonitoring.Pages
         }
         public void OnGet()
         {
-            CurrentTagValue = _opcReader.LatestData;
+            CurrentFeedback = _opcReader.LatestFeedback;
+            CurrentSetpoint = _opcReader.LatestSetpoint;
         }
 
         public JsonResult OnGetLatestData()
         {
             return new JsonResult(new 
             { 
-                temp1 = _opcReader.LatestData 
+                feedback = _opcReader.LatestFeedback,
+                setpoint = _opcReader.LatestSetpoint
             });
         }
 

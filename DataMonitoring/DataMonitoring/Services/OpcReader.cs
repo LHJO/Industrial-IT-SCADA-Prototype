@@ -10,12 +10,14 @@ namespace DataMonitoring.Services
         // Hard coded OPC UA server URL
         private string serverUrl = "opc.tcp://LHsPC:49580";
 
-        // Hard coded OPC UA tag name for reading from the server
-        private string tagNameRead = "ns=2;s=Tempreature";
+        // Hard coded OPC UA tag names for reading from the server
+        private string tagNameReadFeedback = "ns=2;s=Tempreature Feedback";
+        private string tagNameReadSetpoint = "ns=2;s=Tempreature Setpoint";
 
         private OpcClient _client;
 
-        public string LatestData { get; private set; } = "Waiting for data...";
+        public string LatestFeedback { get; private set; } = "Waiting for data...";
+        public string LatestSetpoint { get; private set; } = "Waiting for data...";
 
         public void Connect()
         {
@@ -27,9 +29,11 @@ namespace DataMonitoring.Services
         {
             if (_client != null && _client.State == OpcClientState.Connected)
             {
-                var val = _client.ReadNode(tagNameRead);
+                var valFeedback = _client.ReadNode(tagNameReadFeedback);
+                var valSetpoint = _client.ReadNode(tagNameReadSetpoint);
 
-                LatestData = val?.Value != null ? val.Value.ToString() : "No data";
+                LatestFeedback = valFeedback?.Value != null ? valFeedback.Value.ToString() : "No data";
+                LatestSetpoint = valSetpoint?.Value != null ? valSetpoint.Value.ToString() : "No data"; 
             }
         }
     }

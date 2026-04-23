@@ -9,18 +9,33 @@
 <div class="container dashboard-container">
     <h2 class="text-center text-uppercase fw-bold scada-title mb-4">SCADA Monitoring Dashboard</h2>
 
+    <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
+        <div><strong>OPC Server:</strong> opc.tcp://LHsPC:49580</div>
+        <div><strong>Tags:</strong> Temp Feedback, Temp Setpoint</div>
+        <div>
+            <div>
+                <span class="d-inline-block bg-success rounded-circle me-1" style="width: 12px; height: 12px;"></span>
+                <span class="fw-bold text-success" id="connectionText">Connected</span>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
 
         <!-- OPC Data Box -->
         <div class="col-md-6 mb-4">
             <div class="scada-panel h-100">
                 <div class="scada-panel-header">
-                    <h5 class="mb-0">Temperature Sensors</h5>
+                    <h5 class="mb-0">Temperature Control</h5>
                 </div>
                 <div class="scada-panel-body d-flex flex-column align-items-center justify-content-center">
                     <div class="w-100 text-center mb-3">
-                        <span class="scada-label d-block">Sensor 1</span>
-                        <div class="scada-value d-inline-block" id="sensor1Value">@Model.CurrentTagValue &deg;C</div>
+                        <span class="scada-label d-block">Setpoint</span>
+                        <div class="scada-value d-inline-block" id="sensor1Value">@Model.CurrentSetpoint &deg;C</div>
+                    </div>
+                    <div class="w-100 text-center mb-3">
+                        <span class="scada-label d-block">Feedback</span>
+                        <div class="scada-value d-inline-block" id="sensor1Feedback">@Model.CurrentFeedback &deg;C</div>
                     </div>
                 </div>
             </div>
@@ -73,8 +88,8 @@
         </div>
 
     </div>
-<div class="row mt-4 mb-4">
-    <div class="col-12">
+    <div class="row mt-4 mb-4 justify-content-center">
+        <div class="col-lg-8 col-12">
         <div class="scada-panel">
             <div class="scada-panel-header">
                 <h5 class="mb-0">Temperature Trend</h5>
@@ -93,59 +108,59 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-
-        // Javascript chart.js chart
         const ctx = document.getElementById('tempChart').getContext('2d');
 
         const tempChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-        labels: [],
-        datasets: [{
-        label: 'Sensor 1 Temperature (°C)',
-        data: [],
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-        tension: 0.25,
-        pointRadius: 0
-        }]
-        },
-        options: {
-        animation: false,
-        responsive: true,
-        scales: {
-        x: {
-        ticks: {
-        maxTicksLimit: 10
-        }
-        },
-        y: {
-        title: {
-        display: true,
-        text: '°C'
-        }
-        }
-        }
-        }
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Setpoint (°C)',
+                        data: [],
+                        borderColor: 'rgb(54, 162, 235)', // Blue
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.25,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Feedback (°C)',
+                        data: [],
+                        borderColor: 'rgb(255, 99, 132)', // Red
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.25,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                animation: false,
+                responsive: true,
+                scales: {
+                    x: { ticks: { maxTicksLimit: 10 } },
+                    y: { title: { display: true, text: '°C' } }
+                }
+            }
         });
 
-        // Javascript fetch that asks the server for new data every 1 second
         function fetchLatestData() {
             fetch('?handler=LatestData')
                 .then(response => response.json())
                 .then(data => {
-                    // Update the HTML elements directly without refreshing page
-                    document.getElementById('sensor1Value').innerHTML = data.temp1 + ' &deg;C';
+                    document.getElementById('sensor1Value').innerHTML = data.setpoint  + ' &deg;C';
+                    document.getElementById('sensor1Feedback').innerHTML = data.feedback + ' &deg;C';
 
                     const time = new Date().toLocaleTimeString();
 
                     tempChart.data.labels.push(time);
-                    tempChart.data.datasets[0].data.push(data.temp1);
+                    
+                    tempChart.data.datasets[0].data.push(data.setpoint);
+                    tempChart.data.datasets[1].data.push(data.feedback);
 
-                    // Keep last 50 points
                     if (tempChart.data.labels.length > 50) {
-                    tempChart.data.labels.shift();
-                    tempChart.data.datasets[0].data.shift();
+                        tempChart.data.labels.shift();
+                        tempChart.data.datasets[0].data.shift();
+                        tempChart.data.datasets[1].data.shift();
                     }
 
                     tempChart.update(); 
@@ -153,7 +168,6 @@
                 .catch(error => console.error('Error fetching OPC data:', error));
         }
 
-        // Run the fetch function every 1000 milliseconds
         setInterval(fetchLatestData, 1000);
     </script>
 }
