@@ -19,5 +19,14 @@ namespace DataMonitoring.Pages
         {
             CurrentTagValue = _opcReader.LatestData;
         }
+
+        public JsonResult OnGetLatestData()
+        {
+            return new JsonResult(new 
+            { 
+                temp1 = _opcReader.LatestData 
+            });
+        }
+
     }
 }

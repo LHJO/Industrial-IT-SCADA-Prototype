@@ -9,7 +9,7 @@ namespace DataMonitoring.Services
 {
     /// <summary>
     /// Background service responsible for continuously monitoring data 
-    /// from the OPC UA server independently of the main web application thread.
+    /// from the OPC UA server of the main web application thread.
     /// </summary>
     public class OpcReaderService : BackgroundService
     {
@@ -30,7 +30,7 @@ namespace DataMonitoring.Services
             {
                 _opcReader.ReadTag();
 
-                // Wait 1 second before reading again
+                // 1 second delay before next reading 
                 await Task.Delay(1000, stoppingToken);
             }
         }

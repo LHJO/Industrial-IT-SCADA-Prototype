@@ -1,0 +1,170 @@
+
+body {
+    background-color: #eef0f2; /* Light industrial grey background */
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333333;
+}
+
+.dashboard-container {
+    margin-top: 1.5rem;
+}
+
+.scada-title {
+    color: #4a5568;
+    letter-spacing: 1px;
+}
+
+/* SCADA Panel */
+.scada-panel {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Very subtle flat shadow */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Alarm panel Border */
+.scada-panel-alarm {
+    border-color: #ef4444; 
+}
+
+/* Panel Header */
+.scada-panel-header {
+    background-color: #f1f5f9;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 0.75rem 1rem;
+    color: #475569;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.scada-panel-alarm .scada-panel-header {
+    background-color: #fef2f2;
+    border-bottom-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.scada-panel-body {
+    padding: 1.25rem;
+    flex: 1;
+}
+
+.scada-panel-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #cbd5e1;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.scada-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.scada-value {
+    font-family: "Consolas", "Courier New", monospace; /* Monospace for numbers */
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1e293b; /* Dark, neutral color */
+    line-height: 1;
+}
+
+/* SCADA Tables */
+.scada-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.scada-table th {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.scada-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+/* Status Colors - Red (Alarm) and Yellow (Warning) */
+.scada-row-alarm {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    font-weight: 600;
+    animation: blink-alarm 1s infinite alternate;
+}
+
+@keyframes blink-alarm {
+    0% { background-color: #fef2f2; }
+    100% { background-color: #fca5a5; }
+}
+
+.scada-row-warning {
+    background-color: #fefce8;
+    color: #854d0e; /* Dark yellow/brown for readable text */
+    font-weight: 600;
+    animation: blink-warning 1s infinite alternate;
+}
+
+@keyframes blink-warning {
+    0% { background-color: #fefce8; }
+    100% { background-color: #fde047; }
+}
+
+/* Buttons */
+.scada-btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: pointer;
+    background-color: transparent;
+    transition: all 0.1s;
+}
+
+.scada-btn-alarm {
+    border: 1px solid #ef4444;
+    color: #dc2626;
+}
+
+.scada-btn-alarm:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.scada-btn-warning {
+    border: 1px solid #eab308;
+    color: #a16207;
+}
+
+.scada-btn-warning:hover {
+    background-color: #eab308;
+    color: #ffffff;
+}
+
+/* Badges */
+.scada-badge {
+    background-color: #ef4444; /* Pure alarm red */
+    color: #ffffff;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}

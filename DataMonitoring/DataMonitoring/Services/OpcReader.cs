@@ -19,7 +19,6 @@ namespace DataMonitoring.Services
 
         public void Connect()
         {
-            // Make sure to use your actual OPC Server URL here
             _client = new OpcClient(serverUrl);
             _client.Connect();
         }
@@ -28,12 +27,10 @@ namespace DataMonitoring.Services
         {
             if (_client != null && _client.State == OpcClientState.Connected)
             {
-                // Make sure to use your actual Tag NodeId here
-                var node = _client.ReadNode(tagNameRead);
-                LatestData = node.Value.ToString();
+                var val = _client.ReadNode(tagNameRead);
+
+                LatestData = val?.Value != null ? val.Value.ToString() : "No data";
             }
         }
-
     }
-
 }
