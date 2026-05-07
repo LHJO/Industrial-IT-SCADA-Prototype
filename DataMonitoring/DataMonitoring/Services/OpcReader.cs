@@ -19,21 +19,46 @@ namespace DataMonitoring.Services
         public string LatestFeedback { get; private set; } = "Waiting for data...";
         public string LatestSetpoint { get; private set; } = "Waiting for data...";
 
+        public bool IsConnected => _client != null && _client.State == OpcClientState.Connected;
+
         public void Connect()
         {
-            _client = new OpcClient(serverUrl);
-            _client.Connect();
+            try
+            {
+                if (_client == null)
+                {
+                    _client = new OpcClient(serverUrl);
+                }
+
+                if (_client.State != OpcClientState.Connected)
+                {
+                    _client.Connect();
+                }
+            }
+            catch (Exception)
+            {
+                LatestFeedback = "Server offline";
+                LatestSetpoint = "Server offline";
+            }
         }
 
         public void ReadTag()
         {
-            if (_client != null && _client.State == OpcClientState.Connected)
+            try
             {
-                var valFeedback = _client.ReadNode(tagNameReadFeedback);
-                var valSetpoint = _client.ReadNode(tagNameReadSetpoint);
+                if (_client != null && _client.State == OpcClientState.Connected)
+                {
+                    var valFeedback = _client.ReadNode(tagNameReadFeedback);
+                    var valSetpoint = _client.ReadNode(tagNameReadSetpoint);
 
-                LatestFeedback = valFeedback?.Value != null ? valFeedback.Value.ToString() : "No data";
-                LatestSetpoint = valSetpoint?.Value != null ? valSetpoint.Value.ToString() : "No data"; 
+                    LatestFeedback = valFeedback?.Value != null ? valFeedback.Value.ToString() : "No data";
+                    LatestSetpoint = valSetpoint?.Value != null ? valSetpoint.Value.ToString() : "No data";
+                }
+            }
+            catch (Exception) 
+            { 
+                LatestFeedback = string.Empty;
+                LatestSetpoint= string.Empty;
             }
         }
 

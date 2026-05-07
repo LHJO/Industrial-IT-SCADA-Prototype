@@ -27,7 +27,8 @@ namespace DataMonitoring.Pages
             return new JsonResult(new 
             { 
                 feedback = _opcReader.LatestFeedback,
-                setpoint = _opcReader.LatestSetpoint
+                setpoint = _opcReader.LatestSetpoint,
+                isConnected = _opcReader.IsConnected
             });
         }
 

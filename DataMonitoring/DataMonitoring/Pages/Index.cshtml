@@ -11,10 +11,10 @@
 
     <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
         <div><strong>OPC Server:</strong> opc.tcp://LHsPC:49580</div>
-        <div><strong>Tags:</strong> Temp Feedback, Temp Setpoint</div>
+        <div><strong>Tags:</strong> Process Value, Setpoint</div>
         <div>
             <div>
-                <span class="d-inline-block bg-success rounded-circle me-1" style="width: 12px; height: 12px;"></span>
+                <span class="d-inline-block bg-success rounded-circle me-1" id="connectionDot" style="width: 12px; height: 12px;"></span>
                 <span class="fw-bold text-success" id="connectionText">Connected</span>
             </div>
         </div>
@@ -34,7 +34,7 @@
                         <div class="scada-value d-inline-block" id="sensor1Value">@Model.CurrentSetpoint &deg;C</div>
                     </div>
                     <div class="w-100 text-center mb-3">
-                        <span class="scada-label d-block">Feedback</span>
+                        <span class="scada-label d-block">Process Value</span>
                         <div class="scada-value d-inline-block" id="sensor1Feedback">@Model.CurrentFeedback &deg;C</div>
                     </div>
                 </div>
@@ -46,7 +46,6 @@
             <div class="scada-panel h-100 scada-panel-alarm">
                 <div class="scada-panel-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Active Alarms</h5>
-                    <span class="scada-badge">0</span>
                 </div>
                 <div class="scada-panel-body p-0">
                     <!-- SCADA alarm table -->
@@ -60,7 +59,7 @@
                             </tr>
                         </thead>
                         <tbody id="alarmTableBody">
-                            <!-- Alarms will be injected here dynamically -->
+                            <!-- Alarms -->
                         </tbody>
                     </table>
                 </div>
@@ -107,7 +106,7 @@
                         pointRadius: 0
                     },
                     {
-                        label: 'Feedback (°C)',
+                        label: 'Process Value (°C)',
                         data: [],
                         borderColor: 'rgb(255, 99, 132)', // Red
                         backgroundColor: 'rgba(255, 99, 132, 0.1)',
@@ -126,14 +125,28 @@
             }
         });
 
-        function fetchLatestData() {
-            fetch('?handler=LatestData')
-                .then(response => response.json())
-                .then(data => {
+		function fetchLatestData() {
+			fetch('?handler=LatestData')
+				.then(response => response.json())
+				.then(data => {
+
+					// Update connection state
+					const connectDot = document.getElementById('connectionDot');
+					const connectText = document.getElementById('connectionText');
+
+					if (data.isConnected) {
+						connectDot.className = 'd-inline-block bg-success rounded-circle me-1';
+						connectText.className = 'fw-bold text-success';
+						connectText.innerText = 'Connected';
+					} else {
+						connectDot.className = 'd-inline-block bg-danger rounded-circle me-1';
+						connectText.className = 'fw-bold text-danger';
+						connectText.innerText = 'Not Connected';
+					}
 
 					// Update the displayed values
-                    document.getElementById('sensor1Value').innerHTML = data.setpoint  + ' &deg;C';
-                    document.getElementById('sensor1Feedback').innerHTML = data.feedback + ' &deg;C';
+                    document.getElementById('sensor1Value').innerHTML = Number(data.setpoint).toFixed(2)  + ' &deg;C';
+                    document.getElementById('sensor1Feedback').innerHTML = Number(data.feedback).toFixed(2) + ' &deg;C';
 
 					// Add new data points to the chart
                     const time = new Date().toLocaleTimeString();
@@ -153,11 +166,11 @@
 
                     // Alarm logic
                     const alarmTableBody = document.getElementById('alarmTableBody');
-                    const feedbackValue = parseFloat(data.feedback);
-                    const alarmLimitHigh = 45.0; 
-					const alarmLimitLow = 15.0;
+                    const feedbackValue = parseFloat(Number(data.feedback).toFixed(2));
+                    const alarmLimitHigh = 3.0; 
+					const alarmLimitLow = 1.0;
 					const warningLimitHigh = 35.0;
-					const warningLimitLow = 20.0;
+					const warningLimitLow = 2.0;
 
                     if (feedbackValue >= alarmLimitHigh)
                     {
@@ -193,12 +206,21 @@
 
 
                 })
-                .catch(error => console.error('Error fetching OPC data:', error));
+                .catch(error => {
+                    console.error('Error fetching OPC data:', error);
+                    const connectDot = document.getElementById('connectionDot');
+                    const connectText = document.getElementById('connectionText');
+                    if(connectDot && connectText) {
+                        connectDot.className = 'd-inline-block bg-danger rounded-circle me-1';
+                        connectText.className = 'fw-bold text-danger';
+                        connectText.innerText = 'Not Connected';
+                    }
+                });
         }
 
-        setInterval(fetchLatestData, 1000);
+        setInterval(fetchLatestData, 500);
 
-                const alarmState = {
+            const alarmState = {
             tempHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'High' },
             tempLow: { active: false, acknowledged: false, time: null, message: '', severity: 'High' },
             tempWarningHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium' },

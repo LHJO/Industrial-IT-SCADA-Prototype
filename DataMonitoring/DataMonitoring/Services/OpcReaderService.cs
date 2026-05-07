@@ -22,15 +22,21 @@ namespace DataMonitoring.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Connect once when service starts
-            _opcReader.Connect();
-
-            // Constantly read while app is running
             while (!stoppingToken.IsCancellationRequested)
             {
-                _opcReader.ReadTag();
+                // If the connection is dropped, attempt to reconnect
+                if (!_opcReader.IsConnected)
+                {
+                    _opcReader.Connect();
+                }
 
-                // 1 second delay before next reading 
+                // If connection succeeded, read tags
+                if (_opcReader.IsConnected)
+                {
+                    _opcReader.ReadTag();
+                }
+
+                // 1 second delay before next reading and reconnection if disconnected
                 await Task.Delay(1000, stoppingToken);
             }
         }
