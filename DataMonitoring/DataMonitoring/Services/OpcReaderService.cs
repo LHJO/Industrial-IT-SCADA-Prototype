@@ -8,8 +8,8 @@ using Opc.UaFx.Client;
 namespace DataMonitoring.Services
 {
     /// <summary>
-    /// Background service responsible for continuously monitoring data 
-    /// from the OPC UA server of the main web application thread.
+    /// Background service responsible for maintaining the OPC UA connection
+    /// and managing subscriptions for real-time data updates.
     /// </summary>
     public class OpcReaderService : BackgroundService
     {
@@ -30,14 +30,8 @@ namespace DataMonitoring.Services
                     _opcReader.Connect();
                 }
 
-                // If connection succeeded, read tags
-                if (_opcReader.IsConnected)
-                {
-                    _opcReader.ReadTag();
-                }
-
-                // 1 second delay before next reading and reconnection if disconnected
-                await Task.Delay(1000, stoppingToken);
+                // Check every 5 seconds if still connected, reconnect if needed
+                await Task.Delay(5000, stoppingToken);
             }
         }
     }

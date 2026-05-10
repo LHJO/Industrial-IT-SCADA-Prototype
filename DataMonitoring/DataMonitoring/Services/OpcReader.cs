@@ -2,7 +2,6 @@
 using Opc.Ua.Client;
 using Opc.UaFx.Client;
 
-
 namespace DataMonitoring.Services
 {
     public class OpcReader
@@ -15,6 +14,8 @@ namespace DataMonitoring.Services
         private string tagNameReadSetpoint = "ns=2;s=Tempreature Setpoint";
 
         private OpcClient _client;
+        private OpcSubscription _subscriptionFeedback;
+        private OpcSubscription _subscriptionSetpoint;
 
         public string LatestFeedback { get; private set; } = "Waiting for data...";
         public string LatestSetpoint { get; private set; } = "Waiting for data...";
@@ -33,6 +34,7 @@ namespace DataMonitoring.Services
                 if (_client.State != OpcClientState.Connected)
                 {
                     _client.Connect();
+                    CreateSubscriptions();
                 }
             }
             catch (Exception)
@@ -42,26 +44,38 @@ namespace DataMonitoring.Services
             }
         }
 
-        public void ReadTag()
+        private void CreateSubscriptions()
         {
             try
             {
                 if (_client != null && _client.State == OpcClientState.Connected)
                 {
-                    var valFeedback = _client.ReadNode(tagNameReadFeedback);
-                    var valSetpoint = _client.ReadNode(tagNameReadSetpoint);
+                    _subscriptionFeedback = _client.SubscribeDataChange(
+                        tagNameReadFeedback, 
+                        (sender, e) => 
+                        {
+                            if (e.Item?.Value != null)
+                            {
+                                LatestFeedback = e.Item.Value.ToString();
+                            }
+                        });
 
-                    LatestFeedback = valFeedback?.Value != null ? valFeedback.Value.ToString() : "No data";
-                    LatestSetpoint = valSetpoint?.Value != null ? valSetpoint.Value.ToString() : "No data";
+                    _subscriptionSetpoint = _client.SubscribeDataChange(
+                        tagNameReadSetpoint, 
+                        (sender, e) => 
+                        {
+                            if (e.Item?.Value != null)
+                            {
+                                LatestSetpoint = e.Item.Value.ToString();
+                            }
+                        });
                 }
             }
-            catch (Exception) 
-            { 
-                LatestFeedback = string.Empty;
-                LatestSetpoint= string.Empty;
+            catch (Exception)
+            {
+                LatestFeedback = "No Data";
+                LatestSetpoint = "No Data";
             }
         }
-
-        // public void AcknowledgeAlarm()
     }
 }
