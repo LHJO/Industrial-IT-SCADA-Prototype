@@ -1,0 +1,16 @@
+USE master;
+GO
+
+-- Force disconnect all users
+ALTER DATABASE LIBRARY
+SET SINGLE_USER
+WITH ROLLBACK IMMEDIATE;
+GO
+
+-- Drop database
+DROP DATABASE LIBRARY;
+GO
+
+-- Recreate database
+CREATE DATABASE LIBRARY;
+GO
