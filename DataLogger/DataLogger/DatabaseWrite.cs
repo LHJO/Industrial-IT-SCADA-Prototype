@@ -32,34 +32,42 @@ namespace DataLogger
 
                     foreach (var dataPoint in dataPoints)
                     {
-                        // Get sensor ID from OPC Node ID
-                        var sensorId = await GetSensorIdByOpcNodeIdAsync(connection, dataPoint.NodeId);
-
-                        if (sensorId.HasValue)
+                        try
                         {
-                            // Insert into Measurement table (historical)
-                            await InsertMeasurementAsync(connection, sensorId.Value, dataPoint);
+                            // Get OpcDatapointId by OPC Node ID
+                            var opcDatapointId = await GetOpcDatapointIdByNodeIdAsync(connection, dataPoint.NodeId);
 
-                            // Update CurrentMeasurement table (latest value)
-                            await UpdateCurrentMeasurementAsync(connection, sensorId.Value, dataPoint);
+                            if (opcDatapointId.HasValue)
+                            {
+                                // Insert into Measurement table (historical)
+                                await InsertMeasurementAsync(connection, opcDatapointId.Value, dataPoint);
+
+                                // Update CurrentMeasurement table (latest value)
+                                await UpdateCurrentMeasurementAsync(connection, opcDatapointId.Value, dataPoint);
+
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[DB] ✗ Not mapped: {dataPoint.DisplayName} ({dataPoint.NodeId})");
+                            }
                         }
-                        else
+                        catch (Exception itemEx)
                         {
-                            Console.WriteLine($"OPC datapoint not mapped: {dataPoint.DisplayName} ({dataPoint.NodeId})");
+                            Console.WriteLine($"[DB] ✗ Error writing {dataPoint.DisplayName}: {itemEx.Message}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Database error: {ex.Message}");
+                Console.WriteLine($"[DB] ✗ Database connection error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Gets sensor ID by OPC Node ID from the Sensors table
+        /// Gets OpcDatapointId by OPC Node ID
         /// </summary>
-        private async Task<int?> GetSensorIdByOpcNodeIdAsync(SqlConnection connection, string opcNodeId)
+        private async Task<int?> GetOpcDatapointIdByNodeIdAsync(SqlConnection connection, string opcNodeId)
         {
             const string query = @"
                 SELECT OpcDatapointId
@@ -166,7 +174,7 @@ namespace DataLogger
         }
 
         /// <summary>
-        /// Helper method to safely convert object to double
+        /// Convert object to double
         /// </summary>
         private static double? ConvertToDouble(object value)
         {

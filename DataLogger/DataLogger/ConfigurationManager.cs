@@ -64,14 +64,14 @@ namespace DataLogger
         {
             var defaultItems = new List<OpcItem>
             {
-                new OpcItem { NodeId = "ns=2;s=Tempreature Setpoint", DisplayName = "Temperature Setpoint", Unit = "°C", SensorId = 1 },
-                new OpcItem { NodeId = "ns=2;s=Tempreature Feedback", DisplayName = "Temperature Feedback", Unit = "°C", SensorId = 2 }
+                new OpcItem { NodeId = "ns=2;s=Temperature Setpoint", DisplayName = "Temperature Setpoint", Unit = "°C", SensorId = 1 },
+                new OpcItem { NodeId = "ns=2;s=Temperature Process Value", DisplayName = "Temperature Process Value", Unit = "°C", SensorId = 2 }
             };
 
             return new Configuration
             {
                 OpcServerUrl = "opc.tcp://localhost:4840",
-                NodeIds = new List<string> { "ns=2;s=Tempreature Setpoint", "ns=2;s=Tempreature Feedback" },
+                NodeIds = new List<string> { "ns=2;s=Temperature Setpoint", "ns=2;s=Temperature Process Value" },
                 Items = defaultItems,
                 ConnectionString = "Server=LHsPC\\SQLEXPRESS;Database=LIBRARY;Trusted_Connection=True;TrustServerCertificate=True",
                 ReadIntervalMs = 5000

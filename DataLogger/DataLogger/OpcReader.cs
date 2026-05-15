@@ -40,7 +40,7 @@ namespace DataLogger
                 foreach (var item in _config.Items)
                 {
                     Console.WriteLine($"  • {item.DisplayName} ({item.NodeId})");
-                    Console.WriteLine($"    SensorId: {item.SensorId}, Unit: {item.Unit}");
+                    Console.WriteLine($"    Unit: {item.Unit}");
                 }
 
                 Console.WriteLine($"\nRead Interval: {_config.ReadIntervalMs}ms");
@@ -60,9 +60,9 @@ namespace DataLogger
                 _timer.Start();
 
                 _isRunning = true;
-                Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║  Reading and Sending to Database       ║");
-                Console.WriteLine("╚════════════════════════════════════════╝\n");
+                Console.WriteLine("╔══════════════════════════════════════════════╗");
+                Console.WriteLine("║  Reading OPC UA Data and Sending to Database ║");
+                Console.WriteLine("╚══════════════════════════════════════════════╝\n");
             }
             catch (Exception ex)
             {
@@ -82,9 +82,9 @@ namespace DataLogger
                 _opcUaReader?.Disconnect();
                 _databaseWriter?.Dispose();
 
-                Console.WriteLine("\n╔════════════════════════════════════════╗");
-                Console.WriteLine("║  Stopped                               ║");
-                Console.WriteLine("╚════════════════════════════════════════╝");
+                Console.WriteLine("\n╔══════════════════════════════════════════════╗");
+                Console.WriteLine("║  Stopped                                      ║");
+                Console.WriteLine("╚══════════════════════════════════════════════╝");
                 Console.WriteLine($"  Cycles: {_successfulCycles} successful, {_failedCycles} failed");
             }
             catch (Exception ex)
@@ -93,7 +93,39 @@ namespace DataLogger
             }
         }
 
-        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        public void Resume()
+        {
+            if (!_isRunning == true)
+            {
+                Console.WriteLine("[INFO] DataLogger is already running");
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine("\n╔══════════════════════════════════════════════╗");
+                Console.WriteLine("║  Resuming Data Logging                        ║");
+                Console.WriteLine("╚══════════════════════════════════════════════╝\n");
+
+                // Reconnect OPC reader
+                if (_opcUaReader != null)
+                    _opcUaReader.Connect();
+
+                // Restart timer
+                if (_timer != null)
+                {
+                    _timer.Start();
+                }
+
+                _isRunning = true;
+                Console.WriteLine("[INFO] DataLogger resumed successfully\n");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Error resuming: {ex.Message}");
+            }
+        }
+        private async void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
             if (!_isRunning)
                 return;
@@ -107,9 +139,8 @@ namespace DataLogger
 
                 if (data != null && data.Count > 0)
                 {
-
                     // Send to database
-                    Task.Run(async () => await _databaseWriter.WriteDataAsync(data)).ConfigureAwait(false);
+                    await _databaseWriter.WriteDataAsync(data);
                     _successfulCycles++;
                 }
                 else

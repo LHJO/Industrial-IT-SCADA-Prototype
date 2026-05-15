@@ -16,7 +16,6 @@ try
         worker.Stop();
     };
 
-    // Keep the application running
     while (true)
     {
         System.Threading.Thread.Sleep(1000);
