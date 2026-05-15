@@ -7,6 +7,9 @@ IF OBJECT_ID('dbo.CurrentMeasurement', 'U') IS NOT NULL
 IF OBJECT_ID('dbo.Measurement', 'U') IS NOT NULL
     DROP TABLE dbo.Measurement;
 
+IF OBJECT_ID('dbo.OpcDatapoints', 'U') IS NOT NULL
+    DROP TABLE dbo.OpcDatapoints;
+
 IF OBJECT_ID('dbo.Sensors', 'U') IS NOT NULL
     DROP TABLE dbo.Sensors;
 
@@ -16,9 +19,6 @@ IF OBJECT_ID('dbo.SensorType', 'U') IS NOT NULL
 IF OBJECT_ID('dbo.AirHeaterSystem', 'U') IS NOT NULL
     DROP TABLE dbo.AirHeaterSystem;
 GO
-
-IF OBJECT_ID('dbo.OpcDatapoints', 'U') IS NOT NULL
-    DROP TABLE dbo.OpcDatapoints;
 
 CREATE TABLE dbo.AirHeaterSystem (
     AirHeaterSystemId INT PRIMARY KEY IDENTITY(1,1),
@@ -64,13 +64,13 @@ CREATE TABLE dbo.OpcDatapoints (
 
     AirHeaterSystemId INT NOT NULL,
 
+    DatapointCode VARCHAR(100) NOT NULL,
     DisplayName VARCHAR(100) NOT NULL,
     OpcNodeId VARCHAR(300) NOT NULL,
 
     DatapointType VARCHAR(50) NOT NULL,
     Unit VARCHAR(50) NULL,
 
-    -- Optional link to physical sensor
     SensorId INT NULL,
 
     IsActive BIT NOT NULL DEFAULT 1,
@@ -85,7 +85,10 @@ CREATE TABLE dbo.OpcDatapoints (
         REFERENCES dbo.Sensors(SensorId),
 
     CONSTRAINT UQ_OpcDatapoints_OpcNodeId
-        UNIQUE (OpcNodeId)
+        UNIQUE (OpcNodeId),
+
+    CONSTRAINT UQ_OpcDatapoints_DatapointCode
+        UNIQUE (DatapointCode)
 );
 GO
 
@@ -93,7 +96,6 @@ CREATE UNIQUE INDEX UX_Sensors_DaqPort
 ON dbo.Sensors(DaqPort)
 WHERE DaqPort IS NOT NULL;
 GO
-
 
 CREATE TABLE dbo.CurrentMeasurement (
     OpcDatapointId INT PRIMARY KEY,

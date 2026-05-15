@@ -11,7 +11,6 @@ VALUES
 ('Temperature');
 GO
 
--- Physical sensors only
 INSERT INTO dbo.Sensors (
     AirHeaterSystemId,
     SensorName,
@@ -25,9 +24,9 @@ VALUES
 (1, 'Temperature Sensor 2', 1, 'DAQ1_AI1', 'C', 'Outlet');
 GO
 
--- OPC UA datapoints / control system tags
 INSERT INTO dbo.OpcDatapoints (
     AirHeaterSystemId,
+    DatapointCode,
     DisplayName,
     OpcNodeId,
     DatapointType,
@@ -35,7 +34,22 @@ INSERT INTO dbo.OpcDatapoints (
     SensorId
 )
 VALUES
-(1, 'Temperature Setpoint', 'ns=2;s=Tempreature Setpoint', 'Setpoint', 'C', NULL),
-
-(1, 'Temperature Process Value', 'ns=2;s=Tempreature Feedback', 'Feedback', 'C', 1);
+(
+    1,
+    'AH1_TEMP_SP',
+    'Air Heater 1, Operator Setpoint',
+    'ns=2;s=Temperature Setpoint',
+    'Setpoint',
+    'C',
+    NULL
+),
+(
+    1,
+    'AH1_TEMP_PV',
+    'Air Heater 1, Sensor 1',
+    'ns=2;s=Temperature Process Value',
+    'ProcessValue',
+    'C',
+    1
+);
 GO
