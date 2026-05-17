@@ -10,8 +10,8 @@ namespace DataMonitoring.Services
         private string serverUrl = "opc.tcp://LHsPC:49580";
 
         // Hard coded OPC UA tag names for reading from the server
-        private string tagNameReadFeedback = "ns=2;s=Tempreature Feedback";
-        private string tagNameReadSetpoint = "ns=2;s=Tempreature Setpoint";
+        private string tagNameReadFeedback = "ns=2;s=Temperature Process Value";
+        private string tagNameReadSetpoint = "ns=2;s=Temperature Setpoint";
 
         private OpcClient _client;
         private OpcSubscription _subscriptionFeedback;
@@ -50,6 +50,10 @@ namespace DataMonitoring.Services
             {
                 if (_client != null && _client.State == OpcClientState.Connected)
                 {
+                    Console.WriteLine($"[OpcReader] Creating subscriptions for:");
+                    Console.WriteLine($"  Feedback: {tagNameReadFeedback}");
+                    Console.WriteLine($"  Setpoint: {tagNameReadSetpoint}");
+
                     _subscriptionFeedback = _client.SubscribeDataChange(
                         tagNameReadFeedback, 
                         (sender, e) => 
@@ -57,6 +61,7 @@ namespace DataMonitoring.Services
                             if (e.Item?.Value != null)
                             {
                                 LatestFeedback = e.Item.Value.ToString();
+                                Console.WriteLine($"[OpcReader] Feedback updated: {LatestFeedback}");
                             }
                         });
 
@@ -67,14 +72,18 @@ namespace DataMonitoring.Services
                             if (e.Item?.Value != null)
                             {
                                 LatestSetpoint = e.Item.Value.ToString();
+                                Console.WriteLine($"[OpcReader] Setpoint updated: {LatestSetpoint}");
                             }
                         });
+
+                    Console.WriteLine("[OpcReader] Subscriptions created successfully");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 LatestFeedback = "No Data";
                 LatestSetpoint = "No Data";
+                Console.WriteLine($"[OpcReader] Subscription error: {ex.Message}");
             }
         }
     }

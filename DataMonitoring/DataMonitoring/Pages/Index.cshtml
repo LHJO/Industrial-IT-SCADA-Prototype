@@ -7,18 +7,18 @@
 <link rel="stylesheet" href="~/css/index.css" />
 
 <div class="container dashboard-container">
-    <h2 class="text-center text-uppercase fw-bold scada-title mb-4">SCADA Monitoring Dashboard</h2>
+    <h2 class="text-center text-uppercase fw-bold scada-title mb-4">Air Heater Monitoring</h2>
 
-    <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
-        <div><strong>OPC Server:</strong> opc.tcp://LHsPC:49580</div>
-        <div><strong>Tags:</strong> Process Value, Setpoint</div>
-        <div>
-            <div>
-                <span class="d-inline-block bg-success rounded-circle me-1" id="connectionDot" style="width: 12px; height: 12px;"></span>
-                <span class="fw-bold text-success" id="connectionText">Connected</span>
-            </div>
-        </div>
-    </div>
+	<div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
+		<div><strong>OPC Server:</strong> opc.tcp://LHsPC:49580</div>
+		<div><strong>Tags:</strong> Process Value, Setpoint</div>
+		<div>
+			<div>
+				<span class="d-inline-block bg-success rounded-circle me-1" id="connectionDot" style="width: 12px; height: 12px;"></span>
+				<span class="fw-bold text-success" id="connectionText">Connected</span>
+			</div>
+		</div>
+	</div>
 
     <div class="row">
 
@@ -87,48 +87,57 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-        const ctx = document.getElementById('tempChart').getContext('2d');
+	<script>
+		const ctx = document.getElementById('tempChart').getContext('2d');
 
-        const tempChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Setpoint (°C)',
-                        data: [],
-                        borderColor: 'rgb(54, 162, 235)', // Blue
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                        tension: 0.25,
-                        pointRadius: 0
-                    },
-                    {
-                        label: 'Process Value (°C)',
-                        data: [],
-                        borderColor: 'rgb(255, 99, 132)', // Red
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        tension: 0.25,
-                        pointRadius: 0
-                    }
-                ]
-            },
-            options: {
-                animation: false,
-                responsive: true,
-                scales: {
-                    x: { ticks: { maxTicksLimit: 10 } },
-                    y: { title: { display: true, text: '°C' } }
-                }
-            }
-        });
+		const tempChart = new Chart(ctx, {
+			type: 'line',
+			data: {
+				labels: [],
+				datasets: [
+					{
+						label: 'Setpoint (°C)',
+						data: [],
+						borderColor: 'rgb(54, 162, 235)', // Blue
+						backgroundColor: 'rgba(54, 162, 235, 0.1)',
+						tension: 0.25,
+						pointRadius: 0
+					},
+					{
+						label: 'Process Value (°C)',
+						data: [],
+						borderColor: 'rgb(255, 99, 132)', // Red
+						backgroundColor: 'rgba(255, 99, 132, 0.1)',
+						tension: 0.25,
+						pointRadius: 0
+					}
+				]
+			},
+			options: {
+				animation: false,
+				responsive: true,
+				scales: {
+					x: { ticks: { maxTicksLimit: 10 } },
+					y: { title: { display: true, text: '°C' }, min: 10, max: 45 }
+				}
+			}
+		});
+
+		const alarmState = {
+			tempHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'High', alarmKey: 'tempHigh' },
+			tempLow: { active: false, acknowledged: false, time: null, message: '', severity: 'High', alarmKey: 'tempLow' },
+			tempWarningHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium', alarmKey: 'tempWarningHigh' },
+			tempWarningLow: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium', alarmKey: 'tempWarningLow' }
+		};
 
 		function fetchLatestData() {
+			console.log('[fetchLatestData] Starting fetch...');
 			fetch('?handler=LatestData')
 				.then(response => response.json())
 				.then(data => {
+					console.log('[fetchLatestData] Got data:', data);
 
 					// Update connection state
 					const connectDot = document.getElementById('connectionDot');
@@ -145,86 +154,130 @@
 					}
 
 					// Update the displayed values
-                    document.getElementById('sensor1Value').innerHTML = Number(data.setpoint).toFixed(2)  + ' &deg;C';
-                    document.getElementById('sensor1Feedback').innerHTML = Number(data.feedback).toFixed(2) + ' &deg;C';
+					document.getElementById('sensor1Value').innerHTML = Number(data.setpoint).toFixed(2)  + ' &deg;C';
+					document.getElementById('sensor1Feedback').innerHTML = Number(data.feedback).toFixed(2) + ' &deg;C';
 
 					// Add new data points to the chart
-                    const time = new Date().toLocaleTimeString();
+					const time = new Date().toLocaleTimeString();
 
-                    tempChart.data.labels.push(time);
-                    
-                    tempChart.data.datasets[0].data.push(data.setpoint);
-                    tempChart.data.datasets[1].data.push(data.feedback);
+					tempChart.data.labels.push(time);
 
-                    if (tempChart.data.labels.length > 50) {
-                        tempChart.data.labels.shift();
-                        tempChart.data.datasets[0].data.shift();
-                        tempChart.data.datasets[1].data.shift();
-                    }
+					tempChart.data.datasets[0].data.push(data.setpoint);
+					tempChart.data.datasets[1].data.push(data.feedback);
 
-                    tempChart.update(); 
-
-                    // Alarm logic
-                    const alarmTableBody = document.getElementById('alarmTableBody');
-                    const feedbackValue = parseFloat(Number(data.feedback).toFixed(2));
-                    const alarmLimitHigh = 3.0; 
-					const alarmLimitLow = 1.0;
-					const warningLimitHigh = 35.0;
-					const warningLimitLow = 2.0;
-
-                    if (feedbackValue >= alarmLimitHigh)
-                    {
-                        alarmTableBody.innerHTML = `
-                            <tr class="scada-row-alarm">
-                                <td>${time}</td>
-                                <td>Temp High (${feedbackValue} &deg;C)</td>
-                                <td>High</td>
-                                <td>
-                                    <button class="scada-btn scada-btn-alarm" onclick="acknowledgeLocalAlarm(this)">Ack</button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                    else if (feedbackValue <= alarmLimitLow)
-                    {
-                        alarmTableBody.innerHTML = `
-                            <tr class="scada-row-alarm">
-                                <td>${time}</td>
-                                <td>Temperature Low (${feedbackValue} &deg;C)</td>
-                                <td>High</td>
-                                <td>
-                                    <button class="scada-btn scada-btn-alarm" onclick="acknowledgeLocalAlarm(this)">Ack</button>
-                                </td>
-                            </tr>
-                        `;
+					if (tempChart.data.labels.length > 50) {
+						tempChart.data.labels.shift();
+						tempChart.data.datasets[0].data.shift();
+						tempChart.data.datasets[1].data.shift();
 					}
-                    else
-                    {
-						alarmTableBody.innerHTML = '';
-						document.querySelector('.scada-panel-footer').textContent = '0';
-                    }
 
+					tempChart.update(); 
 
-                })
-                .catch(error => {
-                    console.error('Error fetching OPC data:', error);
-                    const connectDot = document.getElementById('connectionDot');
-                    const connectText = document.getElementById('connectionText');
-                    if(connectDot && connectText) {
-                        connectDot.className = 'd-inline-block bg-danger rounded-circle me-1';
-                        connectText.className = 'fw-bold text-danger';
-                        connectText.innerText = 'Not Connected';
-                    }
-                });
-        }
+					// Render alarms from backend
+					const alarmTableBody = document.getElementById('alarmTableBody');
+					alarmTableBody.innerHTML = ''; // Clear existing rows
 
-        setInterval(fetchLatestData, 500);
+					// Display all alarms from the backend
+					if (data.alarms && data.alarms.length > 0) {
+						data.alarms.forEach(alarm => {
+							renderBackendAlarm(alarm, alarmTableBody);
+						});
+					}
 
-            const alarmState = {
-            tempHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'High' },
-            tempLow: { active: false, acknowledged: false, time: null, message: '', severity: 'High' },
-            tempWarningHigh: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium' },
-            tempWarningLow: { active: false, acknowledged: false, time: null, message: '', severity: 'Medium' }
-        };
-    </script>
+					// Update footer with alarm count
+					const activeAlarmCount = (data.alarms && data.alarms.length > 0) ? data.alarms.length : 0;
+					if (activeAlarmCount === 0) {
+						document.querySelector('.scada-panel-footer').textContent = 'System OK - No active events';
+					} else {
+						document.querySelector('.scada-panel-footer').textContent = `${activeAlarmCount} active event(s)`;
+					}
+				})
+				.catch(error => {
+					console.error('Error fetching OPC data:', error);
+					const connectDot = document.getElementById('connectionDot');
+					const connectText = document.getElementById('connectionText');
+					if(connectDot && connectText) {
+						connectDot.className = 'd-inline-block bg-danger rounded-circle me-1';
+						connectText.className = 'fw-bold text-danger';
+						connectText.innerText = 'Not Connected';
+					}
+				});
+		}
+
+		function renderBackendAlarm(alarm, container) {
+			const rowClass = alarm.isAcknowledged ? 'scada-row-alarm acknowledged' : 'scada-row-alarm';
+			const buttonText = alarm.isAcknowledged ? 'Clear' : 'Ack';
+
+			const row = document.createElement('tr');
+			row.className = rowClass;
+			row.id = `alarm-${alarm.key}`;
+			row.innerHTML = `
+				<td>${alarm.time}</td>
+				<td>${alarm.message}</td>
+				<td>${alarm.severity}</td>
+				<td>
+					<button class="scada-btn scada-btn-alarm">${buttonText}</button>
+				</td>
+			`;
+
+			const button = row.querySelector('button');
+			if (alarm.isAcknowledged) {
+				button.addEventListener('click', () => clearAlarm(alarm.key));
+			} else {
+				button.addEventListener('click', () => acknowledgeAlarm(alarm.key));
+			}
+
+			container.appendChild(row);
+		}
+
+		function acknowledgeAlarm(alarmKey) {
+			console.log(`Acknowledging alarm: ${alarmKey}`);
+
+			// Send acknowledgement to server
+			fetch('?handler=AcknowledgeAlarm', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ alarmKey: alarmKey })
+			})
+			.then(response => response.json())
+			.then(data => {
+				console.log(`Server response: ${JSON.stringify(data)}`);
+				if (data.success) {
+					// Refresh data to reflect the acknowledgement
+					fetchLatestData();
+				}
+			})
+			.catch(error => {
+				console.error('Error acknowledging alarm:', error);
+			});
+		}
+
+		function clearAlarm(alarmKey) {
+			console.log(`Clearing alarm: ${alarmKey}`);
+
+			// Send clear request to server
+			fetch('?handler=ClearAlarm', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ alarmKey: alarmKey })
+			})
+			.then(response => response.json())
+			.then(data => {
+				console.log(`Clear response: ${JSON.stringify(data)}`);
+				if (data.success) {
+					// Refresh data to reflect the clear
+					fetchLatestData();
+				}
+			})
+			.catch(error => {
+				console.error('Error clearing alarm:', error);
+			});
+		}
+
+		setInterval(fetchLatestData, 500);
+	</script>
 }
