@@ -1,5 +1,5 @@
 body {
-    background-color: #eef0f2; /* Light industrial grey background */
+    background-color: #eef0f2; 
     font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #333333;
 }
@@ -18,7 +18,7 @@ body {
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Very subtle flat shadow */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
 }
@@ -60,10 +60,10 @@ body {
 }
 
 .scada-value {
-    font-family: "Consolas", "Courier New", monospace; /* Monospace for numbers */
+    font-family: "Consolas", "Courier New", monospace; 
     font-size: 2rem;
     font-weight: bold;
-    color: #1e293b; /* Dark, neutral color */
+    color: #1e293b; 
     line-height: 1;
 }
 
@@ -163,7 +163,7 @@ body {
 
 /* Badges */
 .scada-badge {
-    background-color: #6c757d; /* Default standard grey */
+    background-color: #6c757d; 
     color: #ffffff;
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
