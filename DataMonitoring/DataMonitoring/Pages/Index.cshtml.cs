@@ -35,7 +35,7 @@ namespace DataMonitoring.Pages
             const double warningLimitHigh = 35;
             const double warningLimitLow = 20;
 
-            // Check for HIGH ALARMS first (highest priority)
+            // Check for HIGH ALARMS
             if (feedback >= alarmLimitHigh)
             {
                 _alarmService.AddOrUpdateAlarm("tempHigh", $"High Temperature Alarm ({feedback:F2} °C)", "High");
@@ -54,7 +54,7 @@ namespace DataMonitoring.Pages
                 _alarmService.RemoveAlarm("tempLow");
             }
 
-            // Check for WARNINGS (only if not in alarm state)
+            // Check for WARNINGS
             if (feedback >= warningLimitHigh && feedback < alarmLimitHigh)
             {
                 _alarmService.AddOrUpdateAlarm("tempWarningHigh", $"High Temperature Warning ({feedback:F2} °C)", "Medium");
