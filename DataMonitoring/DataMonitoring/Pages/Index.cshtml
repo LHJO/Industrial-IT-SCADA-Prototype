@@ -205,30 +205,32 @@
 		}
 
 		function renderBackendAlarm(alarm, container) {
-			const rowClass = alarm.isAcknowledged ? 'scada-row-alarm acknowledged' : 'scada-row-alarm';
+			let baseClass = alarm.severity === 'Medium' ? 'scada-row-warning' : 'scada-row-alarm';
+			const rowClass = alarm.isAcknowledged ? `${baseClass} acknowledged` : baseClass;
 			const buttonText = alarm.isAcknowledged ? 'Clear' : 'Ack';
+			const buttonClass = alarm.severity === 'Medium' ? 'scada-btn scada-btn-warning' : 'scada-btn scada-btn-alarm';
 
 			const row = document.createElement('tr');
-			row.className = rowClass;
-			row.id = `alarm-${alarm.key}`;
+            row.className = rowClass;
+            row.id = `alarm-${alarm.key}`;
 			row.innerHTML = `
 				<td>${alarm.time}</td>
 				<td>${alarm.message}</td>
 				<td>${alarm.severity}</td>
 				<td>
-					<button class="scada-btn scada-btn-alarm">${buttonText}</button>
+					<button class="${buttonClass}">${buttonText}</button>
 				</td>
 			`;
 
-			const button = row.querySelector('button');
-			if (alarm.isAcknowledged) {
-				button.addEventListener('click', () => clearAlarm(alarm.key));
-			} else {
-				button.addEventListener('click', () => acknowledgeAlarm(alarm.key));
-			}
+            const button = row.querySelector('button');
+            if (alarm.isAcknowledged) {
+                button.addEventListener('click', () => clearAlarm(alarm.key));
+            } else {
+                button.addEventListener('click', () => acknowledgeAlarm(alarm.key));
+            }
 
-			container.appendChild(row);
-		}
+            container.appendChild(row);
+        }
 
 		function acknowledgeAlarm(alarmKey) {
 			console.log(`Acknowledging alarm: ${alarmKey}`);

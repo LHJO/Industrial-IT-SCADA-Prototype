@@ -8,6 +8,9 @@ builder.Services.AddRazorPages();
 // Register OpcReader as a Singleton so the same instance is shared everywhere
 builder.Services.AddSingleton<OpcReader>();
 
+// Register AlarmService as a Singleton
+builder.Services.AddSingleton<AlarmService>();
+
 // Register OpcReaderService as a background hosted service
 builder.Services.AddHostedService<OpcReaderService>();
 
@@ -17,7 +20,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

@@ -98,6 +98,13 @@ body {
     animation: blink-alarm 1s infinite alternate;
 }
 
+.scada-row-alarm.acknowledged {
+    animation: none;
+    background-color: #fecaca;
+    color: #7f1d1d;
+    opacity: 0.8;
+}
+
 @keyframes blink-alarm {
     0% { background-color: #fef2f2; }
     100% { background-color: #fca5a5; }
@@ -105,9 +112,16 @@ body {
 
 .scada-row-warning {
     background-color: #fefce8;
-    color: #854d0e; /* Dark yellow/brown for readable text */
+    color: #854d0e;
     font-weight: 600;
     animation: blink-warning 1s infinite alternate;
+}
+
+.scada-row-warning.acknowledged {
+    animation: none;
+    background-color: #fef08a;
+    color: #713f12;
+    opacity: 0.8;
 }
 
 @keyframes blink-warning {

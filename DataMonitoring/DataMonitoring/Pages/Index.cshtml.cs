@@ -29,14 +29,16 @@ namespace DataMonitoring.Pages
             // Get feedback and setpoint values
             double feedback = double.TryParse(_opcReader.LatestFeedback, out var fb) ? fb : 0;
 
-            // Alarm thresholds
+            // Alarm and Warning thresholds
             const double alarmLimitHigh = 40;
             const double alarmLimitLow = 15;
+            const double warningLimitHigh = 35;
+            const double warningLimitLow = 20;
 
-            // Check for alarms and update AlarmService
+            // Check for HIGH ALARMS first (highest priority)
             if (feedback >= alarmLimitHigh)
             {
-                _alarmService.AddOrUpdateAlarm("tempHigh", $"Temperature High ({feedback:F2} °C)", "High");
+                _alarmService.AddOrUpdateAlarm("tempHigh", $"High Temperature Alarm ({feedback:F2} °C)", "High");
             }
             else
             {
@@ -45,11 +47,30 @@ namespace DataMonitoring.Pages
 
             if (feedback <= alarmLimitLow)
             {
-                _alarmService.AddOrUpdateAlarm("tempLow", $"Temperature Low ({feedback:F2} °C)", "High");
+                _alarmService.AddOrUpdateAlarm("tempLow", $"Low Temperature Alarm ({feedback:F2} °C)", "High");
             }
             else
             {
                 _alarmService.RemoveAlarm("tempLow");
+            }
+
+            // Check for WARNINGS (only if not in alarm state)
+            if (feedback >= warningLimitHigh && feedback < alarmLimitHigh)
+            {
+                _alarmService.AddOrUpdateAlarm("tempWarningHigh", $"High Temperature Warning ({feedback:F2} °C)", "Medium");
+            }
+            else
+            {
+                _alarmService.RemoveAlarm("tempWarningHigh");
+            }
+
+            if (feedback <= warningLimitLow && feedback > alarmLimitLow)
+            {
+                _alarmService.AddOrUpdateAlarm("tempWarningLow", $"Low Temperature Warning ({feedback:F2} °C)", "Medium");
+            }
+            else
+            {
+                _alarmService.RemoveAlarm("tempWarningLow");
             }
 
             return new JsonResult(new 
